@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Key System</title>
+
+<style>
+body{
+background:#111;
+color:white;
+font-family:Arial;
+text-align:center;
+margin-top:100px;
+}
+
+.box{
+background:#1f1f1f;
+padding:30px;
+width:320px;
+margin:auto;
+border-radius:10px;
+}
+
+.key{
+color:#00ff9d;
+font-size:22px;
+margin-top:10px;
+}
+
+button{
+margin-top:15px;
+padding:8px 15px;
+border:none;
+border-radius:6px;
+background:#00ff9d;
+color:black;
+font-weight:bold;
+cursor:pointer;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="box" id="box">
+
+<h2>KEY CỦA BẠN</h2>
+
+<p>Web chỉ vào được 1 lần trong ngày</p>
+
+<div class="key" id="key"></div>
+
+<button onclick="copyKey()">COPY KEY</button>
+
+</div>
+
+<script>
+
+function createKey(){
+return "BANANA-" + Math.random().toString(36).substring(2,10).toUpperCase();
+}
+
+let lastVisit = localStorage.getItem("visit_date");
+let today = new Date().toDateString();
+
+if(lastVisit === today){
+
+document.body.innerHTML =
+"<h1>Bạn đã vào web hôm nay rồi</h1><p>Hãy quay lại vào ngày mai</p>";
+
+}else{
+
+let key = createKey();
+
+document.getElementById("key").innerText = key;
+
+localStorage.setItem("visit_date", today);
+
+}
+
+function copyKey(){
+
+let key = document.getElementById("key").innerText;
+
+navigator.clipboard.writeText(key);
+
+alert("Đã copy key!");
+
+}
+
+</script>
+
+</body>
+</html>
