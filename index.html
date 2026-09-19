@@ -1,0 +1,717 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>HOANG KEY SYSTEM</title>
+
+<style>
+*{
+    box-sizing:border-box;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#08080d;
+    color:white;
+}
+
+.card{
+    width:92%;
+    max-width:430px;
+    padding:28px;
+    background:#13131b;
+    border:1px solid #292934;
+    border-radius:20px;
+    box-shadow:0 20px 70px rgba(0,0,0,.6);
+}
+
+.logo{
+    text-align:center;
+    font-size:28px;
+    font-weight:bold;
+}
+
+.subtitle{
+    text-align:center;
+    color:#888;
+    margin:8px 0 25px;
+}
+
+.info{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+}
+
+.infoBox{
+    padding:13px;
+    text-align:center;
+    border-radius:10px;
+    background:#0c0c12;
+    border:1px solid #24242e;
+}
+
+.infoTitle{
+    color:#777;
+    font-size:11px;
+}
+
+.infoValue{
+    margin-top:5px;
+    font-weight:bold;
+}
+
+button{
+    width:100%;
+    margin-top:15px;
+    padding:14px;
+    border:0;
+    border-radius:9px;
+    background:#5865f2;
+    color:white;
+    font-weight:bold;
+    font-size:15px;
+    cursor:pointer;
+}
+
+button:hover{
+    filter:brightness(1.12);
+}
+
+button:disabled{
+    opacity:.5;
+    cursor:not-allowed;
+}
+
+.result{
+    display:none;
+    margin-top:20px;
+    padding:16px;
+    background:#0b0b10;
+    border:1px solid #292934;
+    border-radius:11px;
+}
+
+.label{
+    color:#888;
+    font-size:12px;
+}
+
+.key{
+    margin-top:8px;
+    padding:13px;
+    background:#181820;
+    border-radius:8px;
+    text-align:center;
+    font-family:monospace;
+    word-break:break-all;
+}
+
+.copy{
+    background:#252530;
+}
+
+.status{
+    margin-top:13px;
+    padding:12px;
+    background:#111119;
+    border-radius:8px;
+    text-align:center;
+}
+
+.timer{
+    margin-top:6px;
+    color:#8d8dff;
+    font-weight:bold;
+}
+
+.message{
+    margin-top:15px;
+    padding:12px;
+    border-radius:8px;
+    background:#101016;
+    color:#aaa;
+    text-align:center;
+    font-size:13px;
+}
+
+.footer{
+    margin-top:20px;
+    text-align:center;
+    color:#50505b;
+    font-size:11px;
+}
+
+@media(max-width:360px){
+    .info{
+        grid-template-columns:1fr;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+    <div class="logo">
+        🔑 HOANG KEY
+    </div>
+
+    <div class="subtitle">
+        24 Hour Key System
+    </div>
+
+    <div class="info">
+
+        <div class="infoBox">
+            <div class="infoTitle">
+                KEY DURATION
+            </div>
+
+            <div class="infoValue">
+                24 HOURS
+            </div>
+        </div>
+
+        <div class="infoBox">
+            <div class="infoTitle">
+                GET LIMIT
+            </div>
+
+            <div class="infoValue">
+                1 / 24H
+            </div>
+        </div>
+
+    </div>
+
+    <button
+        id="getButton"
+        onclick="getKey()">
+
+        GET KEY
+
+    </button>
+
+    <div
+        class="result"
+        id="result">
+
+        <div class="label">
+            YOUR KEY
+        </div>
+
+        <div
+            class="key"
+            id="key">
+
+            -
+
+        </div>
+
+        <button
+            class="copy"
+            onclick="copyKey()">
+
+            📋 COPY KEY
+
+        </button>
+
+        <div class="status">
+
+            <div>
+                🟢 KEY ACTIVE
+            </div>
+
+            <div
+                class="timer"
+                id="timer">
+
+                24:00:00
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div
+        class="message"
+        id="message">
+
+        Bạn được phép lấy 1 key mỗi 24 giờ.
+
+    </div>
+
+    <div class="footer">
+        HOANG KEY SYSTEM
+    </div>
+
+</div>
+
+<script>
+
+/*
+==================================================
+CONFIG
+==================================================
+*/
+
+const KEY_STORAGE =
+    "hoang_24h_key";
+
+const EXPIRE_STORAGE =
+    "hoang_24h_expire";
+
+const LAST_GET_STORAGE =
+    "hoang_last_get";
+
+
+let currentKey = "";
+
+let expiresAt = 0;
+
+let lastGet = 0;
+
+let timer = null;
+
+
+/*
+==================================================
+RANDOM KEY
+==================================================
+*/
+
+function randomPart(length){
+
+    const chars =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+    let result = "";
+
+    for(let i = 0; i < length; i++){
+
+        result += chars[
+            Math.floor(
+                Math.random() * chars.length
+            )
+        ];
+
+    }
+
+    return result;
+}
+
+
+function generateKey(){
+
+    return "HOANG-" +
+        randomPart(5) + "-" +
+        randomPart(5) + "-" +
+        randomPart(5);
+
+}
+
+
+/*
+==================================================
+CHECK 24H
+==================================================
+*/
+
+function canGetKey(){
+
+    const now = Date.now();
+
+    const wait =
+        (24 * 60 * 60 * 1000) -
+        (now - lastGet);
+
+    return wait <= 0;
+
+}
+
+
+/*
+==================================================
+GET KEY
+==================================================
+*/
+
+function getKey(){
+
+    const now = Date.now();
+
+
+    /*
+        Nếu key cũ vẫn còn hạn
+    */
+
+    if(
+        currentKey &&
+        expiresAt > now
+    ){
+
+        showMessage(
+            "Bạn đã có key còn hạn. " +
+            "Không thể lấy key mới."
+        );
+
+        showResult();
+
+        return;
+
+    }
+
+
+    /*
+        Kiểm tra giới hạn 24h
+    */
+
+    if(
+        lastGet &&
+        !canGetKey()
+    ){
+
+        const remaining =
+            (24 * 60 * 60 * 1000) -
+            (now - lastGet);
+
+        showMessage(
+            "Bạn chưa thể lấy key mới. " +
+            "Hãy chờ " +
+            formatTime(remaining) +
+            "."
+        );
+
+        return;
+
+    }
+
+
+    /*
+        Tạo key
+    */
+
+    currentKey =
+        generateKey();
+
+    expiresAt =
+        now +
+        (24 * 60 * 60 * 1000);
+
+    lastGet =
+        now;
+
+
+    /*
+        Lưu trình duyệt
+    */
+
+    localStorage.setItem(
+        KEY_STORAGE,
+        currentKey
+    );
+
+    localStorage.setItem(
+        EXPIRE_STORAGE,
+        expiresAt
+    );
+
+    localStorage.setItem(
+        LAST_GET_STORAGE,
+        lastGet
+    );
+
+
+    showResult();
+
+    showMessage(
+        "✅ Đã tạo key. " +
+        "Key có hiệu lực trong 24 giờ."
+    );
+
+}
+
+
+/*
+==================================================
+SHOW RESULT
+==================================================
+*/
+
+function showResult(){
+
+    document.getElementById("key")
+        .textContent =
+        currentKey;
+
+    document.getElementById("result")
+        .style.display =
+        "block";
+
+    updateTimer();
+
+}
+
+
+/*
+==================================================
+COPY
+==================================================
+*/
+
+async function copyKey(){
+
+    if(!currentKey)
+        return;
+
+
+    try{
+
+        await navigator.clipboard
+            .writeText(currentKey);
+
+        const button =
+            document.querySelector(".copy");
+
+        const old =
+            button.textContent;
+
+        button.textContent =
+            "✅ COPIED";
+
+        setTimeout(
+            () => button.textContent = old,
+            1500
+        );
+
+    }
+    catch{
+
+        alert(
+            "Không thể copy key."
+        );
+
+    }
+
+}
+
+
+/*
+==================================================
+TIMER
+==================================================
+*/
+
+function updateTimer(){
+
+    clearInterval(timer);
+
+    function update(){
+
+        const now =
+            Date.now();
+
+        const remaining =
+            expiresAt - now;
+
+
+        if(remaining <= 0){
+
+            document.getElementById("timer")
+                .textContent =
+                "EXPIRED";
+
+            currentKey = "";
+
+            localStorage.removeItem(
+                KEY_STORAGE
+            );
+
+            clearInterval(timer);
+
+            showMessage(
+                "⏰ Key đã hết hạn. " +
+                "Bạn có thể GET KEY mới."
+            );
+
+            return;
+        }
+
+
+        document.getElementById("timer")
+            .textContent =
+            formatTime(remaining);
+
+    }
+
+
+    update();
+
+    timer =
+        setInterval(update,1000);
+
+}
+
+
+/*
+==================================================
+FORMAT TIME
+==================================================
+*/
+
+function formatTime(ms){
+
+    let seconds =
+        Math.max(
+            0,
+            Math.floor(ms / 1000)
+        );
+
+
+    const hours =
+        Math.floor(
+            seconds / 3600
+        );
+
+    seconds %= 3600;
+
+
+    const minutes =
+        Math.floor(
+            seconds / 60
+        );
+
+    seconds %= 60;
+
+
+    return (
+        String(hours).padStart(2,"0")
+        + ":" +
+        String(minutes).padStart(2,"0")
+        + ":" +
+        String(seconds).padStart(2,"0")
+    );
+
+}
+
+
+/*
+==================================================
+MESSAGE
+==================================================
+*/
+
+function showMessage(text){
+
+    document.getElementById("message")
+        .textContent =
+        text;
+
+}
+
+
+/*
+==================================================
+LOAD SAVED DATA
+==================================================
+*/
+
+function loadData(){
+
+    currentKey =
+        localStorage.getItem(
+            KEY_STORAGE
+        ) || "";
+
+
+    expiresAt =
+        Number(
+            localStorage.getItem(
+                EXPIRE_STORAGE
+            ) || 0
+        );
+
+
+    lastGet =
+        Number(
+            localStorage.getItem(
+                LAST_GET_STORAGE
+            ) || 0
+        );
+
+
+    const now =
+        Date.now();
+
+
+    /*
+        Key còn hạn
+    */
+
+    if(
+        currentKey &&
+        expiresAt > now
+    ){
+
+        showResult();
+
+        showMessage(
+            "🔒 Key hiện tại vẫn còn hiệu lực."
+        );
+
+        return;
+
+    }
+
+
+    /*
+        Key hết hạn
+    */
+
+    if(
+        expiresAt &&
+        expiresAt <= now
+    ){
+
+        currentKey = "";
+
+        localStorage.removeItem(
+            KEY_STORAGE
+        );
+
+        localStorage.removeItem(
+            EXPIRE_STORAGE
+        );
+
+        showMessage(
+            "⏰ Key đã hết hạn. " +
+            "Bạn có thể lấy key mới."
+        );
+
+    }
+
+}
+
+
+/*
+==================================================
+START
+==================================================
+*/
+
+loadData();
+
+</script>
+
+</body>
+</html>
